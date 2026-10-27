@@ -1,0 +1,15 @@
+# Local data: secrets, browser sessions, logs and screenshots contain credentials or student data
+.env
+*.env
+profile*/
+logs/
+Flow - */
+*.png
+*.html
+
+# Python / build
+.venv/
+__pycache__/
+dist/
+build/
+.DS_Store
