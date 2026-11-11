@@ -9,7 +9,7 @@ and keeps a progress tracker page you can open on your phone.
 | Faculty Supervisor | Approves pending logbook months (consultation date = now, feedback = `ok`), clicks **Approve** / **Extend** on every assignment, and approves a final report **only** when every logbook month and every assignment of that student is approved. |
 | Tracker | A static HTML page: per period, one row per student, logbook + assignment status per month, final report status, and a "Needs you" list. |
 
-It drives a real browser (WebKit via Playwright) and clicks the same buttons you would. It is unofficial: if the
+It drives a real browser (WebKit, Chromium or Google Chrome via Playwright) and clicks the same buttons you would. It is unofficial: if the
 site changes, it may stop working. **Always preview with `--dry-run` first.**
 
 ## Install
@@ -31,7 +31,8 @@ powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/Luc
 
 Already have [uv](https://docs.astral.sh/uv/)? `uv tool install https://github.com/Luche/binus-ae/archive/refs/heads/main.zip && binus-ae setup`
 
-Setup asks for your BINUS email and/or Site Supervisor username, stores passwords in the system keychain (never in
+Setup asks which browser to use (WebKit is the default on macOS, Chromium elsewhere; WebKit does not work on
+Windows, and `chrome` uses the Google Chrome you already have), your BINUS email and/or Site Supervisor username, stores passwords in the system keychain (never in
 a file), picks where to save the tracker page (your BINUS OneDrive if it syncs on this computer, so it opens on your
 phone), and on macOS offers a reminder on days 5–9 of each month at 09:00. Run `binus-ae setup` again any time to
 change settings.
@@ -61,7 +62,7 @@ The Microsoft sign-in is remembered between runs. If Microsoft asks for MFA, run
 ## Your data
 
 Everything stays on your computer, in `~/.binus-ae/` (move it with `BINUS_AE_HOME`):
-`config.env` (settings, no passwords), `profile-fs/` and `profile-ss/` (browser sessions), `logs/` (daily logs —
+`config.env` (settings, no passwords), `profile-fs*/` and `profile-ss*/` (browser sessions, one per browser), `logs/` (daily logs —
 they contain student names), `last_success`. Passwords are in the keychain under the service `binus-ae`.
 The tracker page contains student names and IDs; keep it in a private folder.
 

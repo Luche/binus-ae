@@ -37,6 +37,9 @@ STATE = HOME / "last_success"  # month of the last full successful run; the remi
 KEYRING = "binus-ae"
 REMINDER_LABEL = "com.binus-ae.reminder"
 REMINDER = Path.home() / "Library/LaunchAgents" / f"{REMINDER_LABEL}.plist"
+# setup choice -> (Playwright engine, channel); "chrome" drives the Google Chrome already installed
+BROWSERS = {"webkit": ("webkit", None), "chromium": ("chromium", None), "chrome": ("chromium", "chrome")}
+DEFAULT_BROWSER = "webkit" if sys.platform == "darwin" else "chromium"
 
 # (sidebar link or page path, period <select> id)
 LOGBOOK = ("Logbook Activity", "#strmLogbook")
@@ -826,8 +829,6 @@ def remove_reminder():
 
 def setup():
     HOME.mkdir(mode=0o700, parents=True, exist_ok=True)  # browser sessions and logs live here
-    print("Installing the WebKit browser used for the automation...")
-    subprocess.run([sys.executable, "-m", "playwright", "install", "webkit"], check=True)
     load_dotenv(CONFIG)
     cfg = {}
 
@@ -835,6 +836,16 @@ def setup():
         current = os.getenv(key) or default
         cfg[key] = input(f"{label} [{current}]: ").strip() or current
         return cfg[key]
+
+    while ask("BINUS_AE_BROWSER", "Browser: webkit, chromium, or chrome (your installed Google Chrome)",
+              DEFAULT_BROWSER).lower() not in BROWSERS:
+        print("Type webkit, chromium, or chrome.")
+    browser = cfg["BINUS_AE_BROWSER"] = cfg["BINUS_AE_BROWSER"].lower()
+    if browser == "chrome":
+        print("Using your installed Google Chrome (install it from google.com/chrome if you have not).")
+    else:
+        print(f"Installing the {browser} browser used for the automation...")
+        subprocess.run([sys.executable, "-m", "playwright", "install", browser], check=True)
 
     def ask_password(account, label):
         pw = getpass.getpass(f"{label} (Enter to keep the saved one / skip): ")
@@ -908,13 +919,21 @@ def main():
     if args.role in (None, "fs") and email:
         jobs.append(("fs", PROFILE, lambda page: login(page, email, password)))
 
+    browser = os.getenv("BINUS_AE_BROWSER", "webkit").lower()
+    if browser not in BROWSERS:
+        print(f"Unknown browser {browser!r}. Run: binus-ae setup")
+        return 2
+    engine, channel = BROWSERS[browser]
+
     bots, login_failed, tracker_written = {}, [], False
     with sync_playwright() as pw:
         for role, profile, do_login in jobs:
             log.info("##### %s #####", "SITE SUPERVISOR" if role == "ss" else "FACULTY SUPERVISOR")
+            if browser != "webkit":  # browser sessions are not shared between engines
+                profile = profile.with_name(f"{profile.name}-{browser}")
             try:
-                ctx = pw.webkit.launch_persistent_context(
-                    str(profile), headless=args.headless, viewport={"width": 1440, "height": 900}
+                ctx = getattr(pw, engine).launch_persistent_context(
+                    str(profile), channel=channel, headless=args.headless, viewport={"width": 1440, "height": 900}
                 )
             except PWError as e:
                 log.error("Could not start the browser (run `binus-ae setup`): %s", str(e).splitlines()[0])
