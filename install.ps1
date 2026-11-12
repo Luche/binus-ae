@@ -1,13 +1,15 @@
 # Installs binus-ae (plus uv and Python if missing), then runs the first-time setup.
-#   powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/Luche/binus-ae/main/install.ps1 | iex"
+#   irm https://raw.githubusercontent.com/Luche/binus-ae/main/install.ps1 -OutFile $env:TEMP\binus-ae-install.ps1
+#   powershell -ExecutionPolicy Bypass -File $env:TEMP\binus-ae-install.ps1
+# Never `irm ... | iex` (here or in the command above): Windows Defender blocks that as Commando.B!ml.
 $ErrorActionPreference = "Stop"
 
 $source = "https://github.com/Luche/binus-ae/archive/refs/heads/main.zip"
 
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     Write-Host "Installing uv (installs Python tools; https://docs.astral.sh/uv)..."
-    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-    $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
+    winget install --id astral-sh.uv -e --accept-source-agreements --accept-package-agreements
+    $env:Path = [Environment]::GetEnvironmentVariable("Path", "User") + ";" + [Environment]::GetEnvironmentVariable("Path", "Machine")
 }
 
 uv tool install --force $source

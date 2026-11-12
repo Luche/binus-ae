@@ -26,8 +26,19 @@ curl -LsSf https://raw.githubusercontent.com/Luche/binus-ae/main/install.sh | sh
 **Windows** — paste into PowerShell (not tested yet):
 
 ```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/Luche/binus-ae/main/install.ps1 | iex"
+irm https://raw.githubusercontent.com/Luche/binus-ae/main/install.ps1 -OutFile $env:TEMP\binus-ae-install.ps1
+powershell -ExecutionPolicy Bypass -File $env:TEMP\binus-ae-install.ps1
 ```
+
+If Windows Defender still blocks it (`Commando.B!ml`), do the same by hand:
+
+1. `winget install --id astral-sh.uv -e`
+2. Open a new PowerShell window, then:
+   ```powershell
+   uv tool install --force https://github.com/Luche/binus-ae/archive/refs/heads/main.zip
+   uv tool update-shell
+   ```
+3. Open a new PowerShell window, then: `binus-ae setup`
 
 Already have [uv](https://docs.astral.sh/uv/)? `uv tool install https://github.com/Luche/binus-ae/archive/refs/heads/main.zip && binus-ae setup`
 
