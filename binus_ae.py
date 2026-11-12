@@ -933,7 +933,8 @@ def main():
                 profile = profile.with_name(f"{profile.name}-{browser}")
             try:
                 ctx = getattr(pw, engine).launch_persistent_context(
-                    str(profile), channel=channel, headless=args.headless, viewport={"width": 1440, "height": 900}
+                    str(profile), channel=channel, chromium_sandbox=True, headless=args.headless,
+                    viewport={"width": 1440, "height": 900},
                 )
             except PWError as e:
                 log.error("Could not start the browser (run `binus-ae setup`): %s", str(e).splitlines()[0])
